@@ -9,7 +9,7 @@ use std::time::Duration;
 use std::{
     env,
     fs::{self},
-    io::{Error, Read},
+    io::{Error, Read, ErrorKind},
 };
 use sys_info::boottime;
 
@@ -31,6 +31,8 @@ struct OpenAIRequest {
     model: String,
     #[serde(rename = "messages")]
     messages: Vec<Message>,
+    #[serde(rename = "temperature")]
+    temperature: f32,
 }
 
 fn main() -> Result<(), Error> {
@@ -42,6 +44,12 @@ fn main() -> Result<(), Error> {
 
     // get the prompt from the user
     let prompt = args.prompt.join(" ");
+
+    // get system prompt from CLI argument
+    let sys_prompt = args.sys_prompt;
+
+    // get temperature from CLI
+    let mut temperature = args.temperature;
 
     // Get the model from the CLI argument, environment variable, or use the default value
     let model = args
@@ -101,6 +109,27 @@ fn main() -> Result<(), Error> {
 
     messages = messages.into_iter().rev().collect();
 
+    // if sys_prompt, then push sys_prompt to messages
+    if sys_prompt.is_some() {
+        messages.push(Message {
+            role: "system".to_string(),
+            content: sys_prompt.clone().unwrap(),
+        });
+    }
+
+    // if check if temperature is a valid number
+    if temperature.is_some() {
+        let temperature_clone = temperature.clone().unwrap();
+
+        if temperature_clone < 0.0 || temperature_clone > 1.9 {
+            return Err(Error::new(ErrorKind::Other, "The temperature needs to be in between 0 and 2!"));
+        }
+    }
+    // else, defaults to 0.2
+    else if temperature.is_none() {
+        temperature = Some(0.2)
+    }
+
     messages.push(Message {
         role: "user".to_string(),
         content: prompt.clone(),
@@ -111,6 +140,7 @@ fn main() -> Result<(), Error> {
     let data = OpenAIRequest {
         model: model.to_string(),
         messages,
+        temperature: temperature.unwrap_or(0.2),
     };
 
     let mut headers = HeaderMap::new();
@@ -185,4 +215,12 @@ struct CliArgs {
     /// The ChatGPT model to use (default: gpt-3.5-turbo)
     #[clap(short, long)]
     model: Option<String>,
+
+    /// The ChatGPT system message
+    #[clap(short, long)]
+    sys_prompt: Option<String>,
+
+    /// The ChatGPT temperature
+    #[clap(short, long)]
+    temperature: Option<f32>,
 }
