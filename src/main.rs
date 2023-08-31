@@ -1,5 +1,4 @@
 use clap::Parser;
-use dirs;
 use reqwest::blocking::Client;
 use reqwest::header::{HeaderMap, AUTHORIZATION, CONTENT_TYPE};
 use rustix::process;
@@ -9,7 +8,7 @@ use std::time::Duration;
 use std::{
     env,
     fs::{self},
-    io::{Error, Read, ErrorKind},
+    io::{Error, ErrorKind, Read},
 };
 use sys_info::boottime;
 
@@ -118,15 +117,15 @@ fn main() -> Result<(), Error> {
     }
 
     // if check if temperature is a valid number
-    if temperature.is_some() {
-        let temperature_clone = temperature.clone().unwrap();
-
-        if temperature_clone < 0.0 || temperature_clone > 1.9 {
-            return Err(Error::new(ErrorKind::Other, "The temperature needs to be in between 0 and 2!"));
+    if let Some(temperature) = temperature {
+        if temperature < 0.0 || temperature > 1.9 {
+            return Err(Error::new(
+                ErrorKind::Other,
+                "The temperature needs to be in between 0 and 2!",
+            ));
         }
-    }
-    // else, defaults to 0.2
-    else if temperature.is_none() {
+    //
+    } else {
         temperature = Some(0.2)
     }
 
