@@ -61,6 +61,24 @@ export CHATGPT_CLI_MODEL=gpt-4
 
 NOTE: The gpt-4 model is not yet available to everyone. You can join the wailist [here](https://openai.com/waitlist/gpt-4-api).
 
+### Send a system message
+
+You can send a system message using the `--sys-prompt` flag, for example:
+
+```
+$ chatgpt --sys-prompt="Answer with slang" Hello, could you help me?
+Sure thing, what's up? How can I assist you?
+```
+
+### Change the temperature
+
+You can set the temperature using flag `--temperature` (Values between 0 and 1). Increasing temperature will enhance the level of randomness in the output, whereas decreasing it, such as to 0.2, will intensify the focus and predictability.
+
+```
+$ chatgpt --temperature=0.8 Complete this phrase "For me, life is..."
+an unpredictable adventure filled with endless opportunities for growth and fulfillment.
+```
+
 ### Increase the request timeout
 
 By default, the CLI will wait 120 seconds for a response from the API. You can increase this timeout by setting the `CHATGPT_CLI_REQUEST_TIMEOUT_SECS` environment variable:
